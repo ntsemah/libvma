@@ -1,0 +1,37 @@
+---
+job: LIBVMA
+
+timeout_minutes: 30
+
+registry_host: nbu-harbor.gtm.nvidia.com
+registry_auth: swx-infra_harbor_credentials
+registry_path: /swx-infra/media
+
+kubernetes:
+  privileged: true
+  cloud: il-ipp-blossom-prod
+  namespace: swx-media
+  nodeSelector: 'beta.kubernetes.io/os=linux'
+  limits: '{memory: 8Gi, cpu: 8000m}'
+  requests: '{memory: 8Gi, cpu: 8000m}'
+  arch_table:
+    x86_64:
+      nodeSelector: 'kubernetes.io/arch=amd64'
+      jnlpImage: '${registry_host}/toolbox/c3po-jnlp:latest'
+
+runs_on_dockers:
+  - {name: 'fedora-rawhide', file: '.ci/dockerfiles/Dockerfile.fedora-rawhide', uri: 'vma/$arch/$name', arch: 'x86_64', tag: '20260420', build_args: '--no-cache --pull'}
+
+matrix:
+  axes:
+    flags:
+      - default
+
+steps:
+  - name: Build
+    run: |
+      env WORKSPACE=$PWD TARGET=${flags} jenkins_test_build=yes ./contrib/test_jenkins.sh
+    onfail: |
+      ./.ci/artifacts.sh
+    archiveArtifacts-onfail: |
+      jenkins/**/arch-*.tar.gz

@@ -1,0 +1,9 @@
+FROM docker.io/library/fedora:rawhide
+
+RUN dnf install --allowerasing -y procps-ng \
+    bsdtar git-core autoconf automake \
+    libtool gcc gcc-c++ make pkgconf-pkg-config \
+    rdma-core-devel libnl3-devel gzip\
+ && ln -sf /usr/bin/bsdtar /usr/local/bin/tar \
+ && dnf clean all \
+ && rm -rf /var/cache/dnf
